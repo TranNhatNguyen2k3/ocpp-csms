@@ -1,0 +1,39 @@
+gitversion: '3.8'
+
+services:
+  ocpp-csms:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: ocpp-csms-server
+    ports:
+      - "9001:9001"
+    environment:
+      - PORT=9001
+    volumes:
+      - ./logs:/app/logs
+    restart: unless-stopped
+    networks:
+      - ocpp-network
+
+  # Optional: Add a test client service
+  test-client:
+    build:
+      context: ./test_client
+      dockerfile: Dockerfile
+    container_name: ocpp-test-client
+    depends_on:
+      - ocpp-csms
+    environment:
+      - CSMS_URL=ws://ocpp-csms:9001/ocpp/ocpp/d0a5a05c-aa94-4754-96f1-a6316dc86ce0
+    networks:
+      - ocpp-network
+    profiles:
+      - test
+
+networks:
+  ocpp-network:
+    driver: bridge
+
+volumes:
+  logs:
